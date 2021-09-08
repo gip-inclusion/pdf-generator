@@ -3,6 +3,7 @@ import puppeteer from "puppeteer";
 export async function genServicePDF(serviceSlug) {
   const browser = await puppeteer.launch({
     product: "chrome",
+    args: ["--no-sandbox"],
     headless: true,
     defaultViewport: {
       width: 1200,
