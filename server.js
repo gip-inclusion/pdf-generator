@@ -3,13 +3,15 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 
 import { genServicePDF } from "./print.js";
+import { ping } from "./ping.js";
 dotenv.config();
 
 const app = express();
 
 app.use(helmet());
 
-app.get("/", async (req, res) => {
+app.get("/ping", async (req, res) => {
+  await ping();
   res.send("ok");
 });
 
