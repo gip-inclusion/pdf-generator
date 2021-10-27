@@ -11,6 +11,9 @@ export async function genServicePDF(serviceSlug) {
     },
   });
   const page = await browser.newPage();
+
+  await page.setJavaScriptEnabled(false);
+
   const serviceUrl = process.env.SERVICE_URL;
 
   await page.goto(`${serviceUrl}/${serviceSlug}`, {
