@@ -2,7 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import dotenv from "dotenv";
 
-import { genServicePDF } from "./print.js";
+import { genServicePDF, resetBrowser } from "./print.js";
 import { ping } from "./ping.js";
 dotenv.config();
 
@@ -16,9 +16,15 @@ app.get("/ping", async (req, res) => {
 });
 
 app.get("/service-pdf/:serviceSlug", async (req, res) => {
-  const filename = await genServicePDF(req.params.serviceSlug);
+  try {
+    console.log("Generating PDF for ", req.params.serviceSlug);
+    const filename = await genServicePDF(req.params.serviceSlug);
 
-  res.download(filename);
+    res.download(filename);
+  } catch (err) {
+    console.error(err);
+    await resetBrowser();
+  }
 });
 
 const port = process.env.PORT;

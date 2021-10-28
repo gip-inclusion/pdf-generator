@@ -1,7 +1,16 @@
 import puppeteer from "puppeteer";
 
-export async function genServicePDF(serviceSlug) {
-  const browser = await puppeteer.launch({
+let browser = null;
+
+export async function resetBrowser() {
+  if (browser) {
+    try {
+      await browser.close();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  browser = await puppeteer.launch({
     product: "chrome",
     args: ["--no-sandbox"],
     headless: true,
@@ -10,6 +19,12 @@ export async function genServicePDF(serviceSlug) {
       height: 800,
     },
   });
+}
+
+export async function genServicePDF(serviceSlug) {
+  if (!browser) {
+    await resetBrowser();
+  }
   const page = await browser.newPage();
 
   await page.setJavaScriptEnabled(false);
@@ -31,6 +46,6 @@ export async function genServicePDF(serviceSlug) {
     landscape: false,
     preferCSSPageSize: true,
   });
-  await browser.close();
+  await page.close();
   return filename;
 }
