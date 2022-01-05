@@ -8,7 +8,12 @@ dotenv.config();
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    // HSTS is already managed by Scalingo
+    hsts: false,
+  })
+);
 
 app.get("/ping", async (req, res) => {
   await ping();
