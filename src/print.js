@@ -1,5 +1,4 @@
 import puppeteer from "puppeteer";
-
 let browser = null;
 
 export async function resetBrowser() {
@@ -21,7 +20,7 @@ export async function resetBrowser() {
   });
 }
 
-export async function genServicePDF(serviceSlug) {
+export async function genPDF(path, filename) {
   if (!browser) {
     await resetBrowser();
   }
@@ -29,16 +28,14 @@ export async function genServicePDF(serviceSlug) {
 
   await page.setJavaScriptEnabled(false);
 
-  const serviceUrl = process.env.SERVICE_URL;
+  const url = `${process.env.PAGE_URL_PREFIX}${path}`;
 
-  await page.goto(`${serviceUrl}/${serviceSlug}`, {
-    waitUntil: ["domcontentloaded", "networkidle0"],
-  });
-  await page.evaluateHandle("document.fonts.ready");
+  console.log(`Rendering ${url}`);
 
-  // https://devdocs.io/puppeteer/index#pagepdfoptions
-  const filename = `${serviceSlug}.pdf`;
+  await page.goto(url);
+  await page.waitForNetworkIdle();
 
+  // https://pptr.dev/#?product=Puppeteer&version=v13.0.1&show=api-pagepdfoptions
   await page.pdf({
     path: filename,
     printBackground: true,
@@ -46,6 +43,4 @@ export async function genServicePDF(serviceSlug) {
     landscape: false,
     preferCSSPageSize: true,
   });
-  await page.close();
-  return filename;
 }
