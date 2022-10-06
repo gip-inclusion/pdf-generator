@@ -13,10 +13,6 @@ export async function resetBrowser() {
     product: "chrome",
     args: ["--no-sandbox"],
     headless: true,
-    defaultViewport: {
-      width: 1200,
-      height: 800,
-    },
   });
 }
 
@@ -35,12 +31,19 @@ export async function genPDF(path, filename) {
   await page.goto(url);
   await page.waitForNetworkIdle();
 
-  // https://pptr.dev/#?product=Puppeteer&version=v13.0.1&show=api-pagepdfoptions
   await page.pdf({
     path: filename,
     printBackground: true,
     displayHeaderFooter: false,
     landscape: false,
-    preferCSSPageSize: true,
+    preferCSSPageSize: false,
+    format: "A4",
+    scale: 0.7,
+        margin: {
+        top: "1cm",
+        right: "1cm",
+        bottom: "1cm",
+        left: "1cm"
+    },
   });
 }
