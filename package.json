@@ -2,8 +2,8 @@
   "name": "dora-pdf",
   "version": "0.0.2",
   "engines": {
-    "node": ">=18 <19",
-    "npm": ">=8 <9"
+    "node": "16",
+    "npm": "8"
   },
   "type": "module",
   "scripts": {
