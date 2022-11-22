@@ -14,16 +14,16 @@
   },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "helmet": "^6.0.0",
-    "puppeteer": "^18.2.1",
+    "puppeteer": "^19.2.2",
     "tmp": "^0.2.1"
   },
   "devDependencies": {
-    "eslint": "^8.24.0",
+    "eslint": "^8.27.0",
     "eslint-config-eslint": "^7.0.0",
     "eslint-config-prettier": "^8.5.0",
-    "husky": "^8.0.1",
+    "husky": "^8.0.2",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1"
   },
