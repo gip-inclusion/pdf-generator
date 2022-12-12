@@ -2,7 +2,7 @@
   "name": "dora-pdf",
   "version": "0.0.2",
   "engines": {
-    "node": "16",
+    "node": "18",
     "npm": "8"
   },
   "type": "module",
@@ -15,17 +15,17 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "helmet": "^6.0.0",
-    "puppeteer": "^19.2.2",
+    "helmet": "^6.0.1",
+    "puppeteer": "^19.3.0",
     "tmp": "^0.2.1"
   },
   "devDependencies": {
-    "eslint": "^8.27.0",
+    "eslint": "^8.29.0",
     "eslint-config-eslint": "^7.0.0",
     "eslint-config-prettier": "^8.5.0",
     "husky": "^8.0.2",
-    "lint-staged": "^13.0.3",
-    "prettier": "^2.7.1"
+    "lint-staged": "^13.1.0",
+    "prettier": "^2.8.0"
   },
   "lint-staged": {
     "*.{js}": [
