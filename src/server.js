@@ -31,7 +31,7 @@ app.get("/ping", async (req, res) => {
 //         Will get appended to the PAGE_URL_PREFIX env var.
 // - name (optional): the name of the downloaded PDF.
 //                    If not supplied, will use the PDF_NAME env var.
-app.get("/print", async (req, res, next) => {
+app.get("/print", async (req, res, _next) => {
   const page = req.query.page;
 
   if (!page) {
