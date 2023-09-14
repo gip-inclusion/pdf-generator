@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: ["eslint:recommended", "eslint", "prettier"],
+  extends: ["eslint:recommended", "prettier"],
   parserOptions: {
     sourceType: "module",
     ecmaVersion: "latest",
@@ -12,5 +12,6 @@ module.exports = {
   rules: {
     "jsdoc/require-jsdoc": "off",
     "no-console": "warn",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
   },
 };

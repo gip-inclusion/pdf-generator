@@ -12,7 +12,7 @@ export async function resetBrowser() {
   browser = await puppeteer.launch({
     product: "chrome",
     args: ["--no-sandbox"],
-    headless: true,
+    headless: "new",
   });
 }
 
@@ -39,11 +39,11 @@ export async function genPDF(path, filename) {
     preferCSSPageSize: false,
     format: "A4",
     scale: 0.7,
-        margin: {
-        top: "1cm",
-        right: "1cm",
-        bottom: "1cm",
-        left: "1cm"
+    margin: {
+      top: "1cm",
+      right: "1cm",
+      bottom: "1cm",
+      left: "1cm",
     },
   });
 }

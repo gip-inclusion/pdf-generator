@@ -2,30 +2,30 @@
   "name": "dora-pdf",
   "version": "0.0.2",
   "engines": {
-    "node": "18",
-    "npm": "8"
+    "npm": ">=8",
+    "node": "18"
   },
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "lint": "prettier --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
-    "format": "prettier --write --plugin-search-dir=. . && eslint --ignore-path .gitignore --fix .",
+    "lint": "prettier --check . && eslint --ignore-path .gitignore .",
+    "format": "prettier --write . && eslint --ignore-path .gitignore --fix .",
     "prepare": "husky install"
   },
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "helmet": "^6.0.1",
-    "puppeteer": "^19.7.5",
-    "tmp": "^0.2.1"
+    "dotenv": "16.3.1",
+    "express": "4.18.2",
+    "helmet": "7.0.0",
+    "puppeteer": "21.2.1",
+    "tmp": "0.2.1"
   },
   "devDependencies": {
-    "eslint": "^8.36.0",
-    "eslint-config-eslint": "^7.0.0",
-    "eslint-config-prettier": "^8.7.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^13.2.0",
-    "prettier": "^2.8.4"
+    "eslint": "8.49.0",
+    "eslint-config-eslint": "9.0.0",
+    "eslint-config-prettier": "9.0.0",
+    "husky": "8.0.3",
+    "lint-staged": "14.0.1",
+    "prettier": "3.0.3"
   },
   "lint-staged": {
     "*.{js}": [
