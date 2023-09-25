@@ -4,7 +4,7 @@ export async function ping() {
   const browser = await puppeteer.launch({
     product: "chrome",
     args: ["--no-sandbox"],
-    headless: true,
+    headless: "new",
   });
 
   await browser.close();
