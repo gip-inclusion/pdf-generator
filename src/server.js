@@ -29,6 +29,22 @@ const printExemple =
 
 const app = express();
 
+// add CORS to authorize only immersion-facile.beta.gouv.fr and sub domains :
+
+app.use(function (req, res, next) {
+  const origin = req.get("origin");
+  if (
+    origin &&
+    origin.match(
+      /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*\.)?immersion-facile\.beta\.gouv\.fr$/
+    )
+  ) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+  }
+  next();
+});
+
 app.use(bodyParser.json({ limit: "800kb" }));
 
 app.use(
