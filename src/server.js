@@ -1,10 +1,16 @@
 import dotenv from "dotenv";
 import express from "express";
 import helmet from "helmet";
+import bodyParser from "body-parser";
 import tmp from "tmp";
+import crypto from "crypto";
 
 import { genPDF, resetBrowser } from "./print.js";
 import { ping } from "./ping.js";
+import {
+  generatePdfFromHtml,
+  logWithRequestId,
+} from "./generatePdfFromHtml.js";
 
 dotenv.config();
 
@@ -22,6 +28,8 @@ const printExemple =
   "exemple of correct query params: 'https://...?page=https://example.com&name=exemple.pdf'";
 
 const app = express();
+
+app.use(bodyParser.json({ limit: "800kb" }));
 
 app.use(
   helmet({
@@ -74,6 +82,32 @@ app.get("/print", async (req, res, _next) => {
   } catch (err) {
     console.error(err);
     await resetBrowser();
+  }
+});
+
+app.post("/generate", async (req, res) => {
+  const requestId = crypto.randomUUID();
+  logWithRequestId(requestId, "reached POST /generate");
+
+  const htmlContent = req.body.htmlContent;
+
+  if (!htmlContent) {
+    logWithRequestId(requestId, "POST /generate, failed with 400");
+    res.status(400);
+    res.send(`Missing 'htmlContent' body param`);
+    return;
+  }
+
+  try {
+    const base64Pdf = await generatePdfFromHtml(
+      req.body.htmlContent,
+      crypto.randomUUID()
+    );
+
+    res.send(base64Pdf);
+    return;
+  } catch (error) {
+    logWithRequestId(requestId, "Error when generating pdf", error);
   }
 });
 
