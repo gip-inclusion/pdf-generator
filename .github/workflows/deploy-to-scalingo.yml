@@ -1,0 +1,16 @@
+name: "Deploy main to scalingo"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    uses: gip-inclusion/reusable-github-actions/.github/workflows/deploy-to-scalingo-from-github-targz.yml@main
+    with:
+      appName: ${{ vars.APP_NAME }}
+      region: ${{ vars.REGION }}
+      targzUrl: ${{ vars.TARGZ_URL }}
+    secrets:
+      SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
