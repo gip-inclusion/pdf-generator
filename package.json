@@ -1,5 +1,5 @@
 {
-  "name": "dora-pdf",
+  "name": "pdf-generator",
   "version": "0.0.2",
   "engines": {
     "npm": ">=8",
