@@ -8,6 +8,9 @@ import { ping } from "./ping.js";
 
 dotenv.config();
 
+const printExemple =
+  "exemple of correct query params: ?page=https://example.com&name=exemple.pdf";
+
 const app = express();
 
 app.use(
@@ -35,16 +38,21 @@ app.get("/print", async (req, res, _next) => {
   const page = req.query.page;
 
   if (!page) {
-    res.status(500);
-    res.send("Missing <code>?page</code> query var");
+    res.status(400);
+    res.send(`Missing 'page' query param, (${printExemple})`);
     return;
   }
 
-  const downloadName = req.query.name || process.env.PDF_NAME || "out.pdf";
+  const downloadName = req.query.name;
+  if (!downloadName) {
+    res.status(400);
+    res.send(`Missing 'name' query param, (${printExemple})`);
+    return;
+  }
 
   try {
     console.log(
-      `Generating PDF for page ${page} with prefix ${process.env.PAGE_URL_PREFIX}`
+      `GET /print - Page: ${page} - Prefix: ${process.env.PAGE_URL_PREFIX}`
     );
     const tmpFile = tmp.fileSync();
 
