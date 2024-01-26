@@ -8,8 +8,18 @@ import { ping } from "./ping.js";
 
 dotenv.config();
 
+// Sanity checks
+const pageUrlPrefix = process.env.PAGE_URL_PREFIX;
+if (!pageUrlPrefix) throw new Error("PAGE_URL_PREFIX should be set");
+
+const port = process.env.PORT;
+if (!port) throw new Error("PORT should be set");
+
+console.log("PAGE_URL_PREFIX:", pageUrlPrefix);
+console.log("PORT:", port);
+
 const printExemple =
-  "exemple of correct query params: ?page=https://example.com&name=exemple.pdf";
+  "exemple of correct query params: 'https://...?page=https://example.com&name=exemple.pdf'";
 
 const app = express();
 
@@ -32,8 +42,7 @@ app.get("/ping", async (req, res) => {
 // Query vars:
 // - page: the path of the page we'll generate the PDF from.
 //         Will get appended to the PAGE_URL_PREFIX env var.
-// - name (optional): the name of the downloaded PDF.
-//                    If not supplied, will use the PDF_NAME env var.
+// - name: the name of the downloaded PDF.
 app.get("/print", async (req, res, _next) => {
   const page = req.query.page;
 
@@ -51,9 +60,7 @@ app.get("/print", async (req, res, _next) => {
   }
 
   try {
-    console.log(
-      `GET /print - Page: ${page} - Prefix: ${process.env.PAGE_URL_PREFIX}`
-    );
+    console.log(`GET /print - Page: ${page}`);
     const tmpFile = tmp.fileSync();
 
     await genPDF(page, tmpFile.name);
@@ -69,17 +76,6 @@ app.get("/print", async (req, res, _next) => {
     await resetBrowser();
   }
 });
-
-// Sanity checks
-if (!process.env.PAGE_URL_PREFIX) {
-  throw new Error("PAGE_URL_PREFIX should be set");
-}
-
-const port = process.env.PORT;
-
-if (!process.env.PORT) {
-  throw new Error("PORT should be set");
-}
 
 // Run the server
 app.listen(port, () => {
