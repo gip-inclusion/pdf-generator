@@ -15,35 +15,16 @@ import {
 dotenv.config();
 
 // Sanity checks
-const pageUrlPrefix = process.env.PAGE_URL_PREFIX;
-if (!pageUrlPrefix) throw new Error("PAGE_URL_PREFIX should be set");
+const apiKey = process.env.API_KEY;
+if (!apiKey) throw new Error("API_KEY should be set");
 
 const port = process.env.PORT;
 if (!port) throw new Error("PORT should be set");
 
-console.log("PAGE_URL_PREFIX:", pageUrlPrefix);
-console.log("PORT:", port);
-
 const printExemple =
-  "exemple of correct query params: 'https://...?page=https://example.com&name=exemple.pdf'";
+  "exemple of correct query params: 'https://...?url=https://example.com&name=exemple.pdf'";
 
 const app = express();
-
-// add CORS to authorize only immersion-facile.beta.gouv.fr and sub domains :
-
-app.use(function (req, res, next) {
-  const origin = req.get("origin");
-  if (
-    origin &&
-    origin.match(
-      /^https:\/\/([a-z0-9]+(-[a-z0-9]+)*\.)?immersion-facile\.beta\.gouv\.fr$/
-    )
-  ) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Headers", "Content-Type");
-  }
-  next();
-});
 
 app.use(bodyParser.json({ limit: "800kb" }));
 
@@ -55,6 +36,16 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  if (req.headers.authorization !== apiKey) {
+    res.status(401);
+    res.send("Unauthorized, please provide a valid API key.");
+    return;
+  }
+
+  next();
+});
+
 // /ping endpoint
 // Returns "ok" if the service is up
 app.get("/ping", async (req, res) => {
@@ -64,15 +55,15 @@ app.get("/ping", async (req, res) => {
 
 // /print endpoint
 // Query vars:
-// - page: the path of the page we'll generate the PDF from.
-//         Will get appended to the PAGE_URL_PREFIX env var.
+// - url: the path of the url we'll generate the PDF from.
 // - name: the name of the downloaded PDF.
-app.get("/print", async (req, res, _next) => {
-  const page = req.query.page;
 
-  if (!page) {
+app.get("/print", async (req, res, _next) => {
+  const url = req.query.url;
+
+  if (!url) {
     res.status(400);
-    res.send(`Missing 'page' query param, (${printExemple})`);
+    res.send(`Missing 'url' query param, (${printExemple})`);
     return;
   }
 
@@ -84,10 +75,10 @@ app.get("/print", async (req, res, _next) => {
   }
 
   try {
-    console.log(`GET /print - Page: ${page}`);
+    console.log(`GET /print - Page: ${url}`);
     const tmpFile = tmp.fileSync();
 
-    await genPDF(page, tmpFile.name);
+    await genPDF(url, tmpFile.name);
 
     res.download(tmpFile.name, downloadName, (err) => {
       if (err) {

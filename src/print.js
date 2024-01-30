@@ -16,15 +16,13 @@ export async function resetBrowser() {
   });
 }
 
-export async function genPDF(path, filename) {
+export async function genPDF(url, filename) {
   if (!browser) {
     await resetBrowser();
   }
   const page = await browser.newPage();
 
   await page.setJavaScriptEnabled(false);
-
-  const url = `${process.env.PAGE_URL_PREFIX}${path}`;
 
   console.log(`Rendering ${url}`);
 
