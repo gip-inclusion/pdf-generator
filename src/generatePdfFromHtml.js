@@ -9,7 +9,7 @@ export const logWithRequestId = (requestId, message, error) => {
 };
 
 export const generatePdfFromHtml = async (htmlContent, requestId) => {
-  logWithRequestId(requestId, "generatePdfFromHtml starts");
+  logWithRequestId(requestId, "generatePdfFromHtml started");
   const browser = await launch({
     headless: "new",
     args: ["--no-sandbox"],
@@ -19,7 +19,7 @@ export const generatePdfFromHtml = async (htmlContent, requestId) => {
   await page.setContent(htmlContent, { waitUntil: "load" });
   await page.emulateMediaType("print");
 
-  const fileName = `document_${crypto.randomUUID()}.pdf`;
+  const fileName = `document_${requestId}.pdf`;
   const base64Pdf = (
     await page.pdf({
       path: fileName,
@@ -37,7 +37,7 @@ export const generatePdfFromHtml = async (htmlContent, requestId) => {
   await page.close();
   await browser.close();
 
-  logWithRequestId(requestId, "generatePdfFromHtml finishes");
+  logWithRequestId(requestId, "generatePdfFromHtml finished");
 
   return base64Pdf;
 };

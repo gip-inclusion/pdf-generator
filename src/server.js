@@ -93,7 +93,7 @@ app.get("/print", async (req, res, _next) => {
 });
 
 app.post("/generate", async (req, res) => {
-  const requestId = crypto.randomUUID();
+  const requestId = req.query.request_id ?? crypto.randomUUID();
   logWithRequestId(requestId, "reached POST /generate");
 
   const htmlContent = req.body.htmlContent;
@@ -108,7 +108,7 @@ app.post("/generate", async (req, res) => {
   try {
     const base64Pdf = await generatePdfFromHtml(
       req.body.htmlContent,
-      crypto.randomUUID()
+      requestId
     );
 
     res.send(base64Pdf);
