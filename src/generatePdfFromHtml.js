@@ -14,6 +14,9 @@ export const logWithRequestId = (requestId, message, error) => {
 export const makeGeneratePdfFromHtml =
   (browser) => async (htmlContent, requestId) => {
     return limiter.schedule(async () => {
+      const durationLabel = `[${requestId}] - Pdf generation duration`
+      console.time(durationLabel)
+
       logWithRequestId(requestId, "generatePdfFromHtml started");
       const page = await browser.newPage();
       try {
@@ -42,6 +45,7 @@ export const makeGeneratePdfFromHtml =
         logWithRequestId(requestId, "generatePdfFromHtml FAILED", error);
         throw error;
       } finally {
+        console.timeEnd(durationLabel)
         await page.close();
       }
     });
