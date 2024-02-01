@@ -6,11 +6,20 @@ on:
       - main
 
 jobs:
-  deploy:
+  deploy-prod:
     uses: gip-inclusion/reusable-github-actions/.github/workflows/deploy-to-scalingo-from-github-targz.yml@main
     with:
-      appName: ${{ vars.APP_NAME }}
-      region: ${{ vars.REGION }}
+      appName: ${{ vars.APP_NAME_PROD }}
+      region: ${{ vars.REGION_PROD }}
       targzUrl: ${{ vars.TARGZ_URL }}
     secrets:
-      SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+      SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN_PROD }}
+
+  deploy-sandbox:
+    uses: gip-inclusion/reusable-github-actions/.github/workflows/deploy-to-scalingo-from-github-targz.yml@main
+    with:
+      appName: ${{ vars.APP_NAME_SANDBOX }}
+      region: ${{ vars.REGION_SANDBOX }}
+      targzUrl: ${{ vars.TARGZ_URL }}
+    secrets:
+      SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN_SANDBOX }}
