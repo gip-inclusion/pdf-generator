@@ -1,4 +1,3 @@
-import { launch } from "puppeteer";
 import Bottleneck from "bottleneck";
 
 const limiter = new Bottleneck({
@@ -12,13 +11,9 @@ export const logWithRequestId = (requestId, message, error) => {
   }
 };
 
-export const generatePdfFromHtml = async (htmlContent, requestId) => {
+export const makeGeneratePdfFromHtml = (browser) => async (htmlContent, requestId) => {
   logWithRequestId(requestId, "generatePdfFromHtml started");
   return limiter.schedule(async () => {
-    const browser = await launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-dev-shm-usage"],
-    });
     const page = await browser.newPage();
     try {
       await page.setContent(htmlContent, { waitUntil: "load" });
@@ -39,9 +34,6 @@ export const generatePdfFromHtml = async (htmlContent, requestId) => {
         })
       ).toString("base64");
 
-      await page.close();
-      await browser.close();
-
       logWithRequestId(requestId, "generatePdfFromHtml finished");
 
       return base64Pdf;
@@ -50,7 +42,6 @@ export const generatePdfFromHtml = async (htmlContent, requestId) => {
       throw error;
     } finally {
       await page.close();
-      await browser.close();
     }
   });
 };

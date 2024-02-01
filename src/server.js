@@ -8,9 +8,10 @@ import crypto from "crypto";
 import { genPDF, resetBrowser } from "./print.js";
 import { ping } from "./ping.js";
 import {
-  generatePdfFromHtml,
+  makeGeneratePdfFromHtml,
   logWithRequestId,
 } from "./generatePdfFromHtml.js";
+import {launch} from "puppeteer";
 
 dotenv.config();
 
@@ -25,6 +26,13 @@ const printExemple =
   "exemple of correct query params: 'https://...?url=https://example.com&name=exemple.pdf'";
 
 const app = express();
+
+const browser = await launch({
+  headless: "new",
+  args: ["--no-sandbox"],
+});
+
+const generatePdfFromHtml = makeGeneratePdfFromHtml(browser);
 
 app.use(bodyParser.json({ limit: "800kb" }));
 
