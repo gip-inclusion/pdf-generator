@@ -6,7 +6,6 @@ import tmp from "tmp";
 import crypto from "crypto";
 
 import { genPDF, resetBrowser } from "./print.js";
-import { ping } from "./ping.js";
 import {
   makeGeneratePdfFromHtml,
   logWithRequestId,
@@ -57,7 +56,6 @@ app.use((req, res, next) => {
 // /ping endpoint
 // Returns "ok" if the service is up
 app.get("/ping", async (req, res) => {
-  await ping();
   res.send("ok");
 });
 
