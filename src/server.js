@@ -123,6 +123,7 @@ app.post("/generate", async (req, res) => {
     return;
   } catch (error) {
     logWithRequestId(requestId, "Error when generating pdf", error);
+    throw error
   }
 });
 
