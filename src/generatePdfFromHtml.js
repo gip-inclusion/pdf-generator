@@ -14,11 +14,13 @@ export const logWithRequestId = (requestId, message, error) => {
 export const makeGeneratePdfFromHtml =
   (browser) => async (htmlContent, requestId) => {
     return limiter.schedule(async () => {
-      const durationLabel = `[${requestId}] - Pdf generation duration`
-      console.time(durationLabel)
+      const durationLabel = `[${requestId}] - Pdf generation duration`;
+      console.time(durationLabel);
 
       logWithRequestId(requestId, "generatePdfFromHtml started");
       const page = await browser.newPage();
+      page.setDefaultNavigationTimeout(2_500);
+
       try {
         await page.setContent(htmlContent, { waitUntil: "load" });
         await page.emulateMediaType("print");
@@ -45,7 +47,7 @@ export const makeGeneratePdfFromHtml =
         logWithRequestId(requestId, "generatePdfFromHtml FAILED", error);
         throw error;
       } finally {
-        console.timeEnd(durationLabel)
+        console.timeEnd(durationLabel);
         await page.close();
       }
     });
