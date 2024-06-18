@@ -19,7 +19,7 @@ export const makeGeneratePdfFromHtml =
 
       logWithRequestId(requestId, "generatePdfFromHtml started");
       const page = await browser.newPage();
-      page.setDefaultNavigationTimeout(2_500);
+      page.setDefaultNavigationTimeout(5_000);
 
       try {
         await page.setContent(htmlContent, { waitUntil: "load" });
