@@ -88,7 +88,7 @@ app.get("/print", async (req, res, _next) => {
 
   try {
     console.log(`GET /print - Page: ${url}`);
-    const tmpFile = tmp.fileSync();
+    const tmpFile = tmp.fileSync({ suffix: '.pdf' });
 
     await genPDF(url, tmpFile.name, { margin: marginOptions });
 
