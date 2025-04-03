@@ -12,7 +12,7 @@ export const logWithRequestId = (requestId, message, error) => {
 };
 
 export const makeGeneratePdfFromHtml =
-  (browser) => async (htmlContent, requestId) => {
+  (browser) => async (htmlContent, requestId, options = {}) => {
     return limiter.schedule(async () => {
       const durationLabel = `[${requestId}] - Pdf generation duration`;
       console.time(durationLabel);
@@ -30,10 +30,10 @@ export const makeGeneratePdfFromHtml =
           await page.pdf({
             path: fileName,
             margin: {
-              top: "2.5cm",
-              right: "1.5cm",
-              bottom: "2.5cm",
-              left: "1.5cm",
+              top: options.margin?.top ?? "2.5cm",
+              right: options.margin?.right ?? "1.5cm",
+              bottom: options.margin?.bottom ?? "2.5cm",
+              left: options.margin?.left ?? "1.5cm",
             },
             printBackground: true,
             format: "A4",
