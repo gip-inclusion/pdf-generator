@@ -64,6 +64,16 @@ app.get("/ping", async (req, res) => {
 // - url: the path of the url we'll generate the PDF from.
 // - name: the name of the downloaded PDF.
 
+const getMarginOptions = (queryParams = {}) => {
+  const { marginTop, marginRight, marginBottom, marginLeft } = queryParams;
+  return {
+    ...(marginTop && { top: marginTop }),
+    ...(marginRight && { right: marginRight }),
+    ...(marginBottom && { bottom: marginBottom }),
+    ...(marginLeft && { left: marginLeft }),
+  };
+};
+
 app.get("/print", async (req, res, _next) => {
   const url = req.query.url;
 
@@ -80,17 +90,11 @@ app.get("/print", async (req, res, _next) => {
     return;
   }
 
-  const marginOptions = {};
-  if (req.query.marginTop) marginOptions.top = req.query.marginTop;
-  if (req.query.marginRight) marginOptions.right = req.query.marginRight;
-  if (req.query.marginBottom) marginOptions.bottom = req.query.marginBottom;
-  if (req.query.marginLeft) marginOptions.left = req.query.marginLeft;
-
   try {
     console.log(`GET /print - Page: ${url}`);
     const tmpFile = tmp.fileSync({ suffix: '.pdf' });
 
-    await genPDF(url, tmpFile.name, { margin: marginOptions });
+    await genPDF(url, tmpFile.name, { margin: getMarginOptions(req.query) });
 
     res.download(tmpFile.name, downloadName, (err) => {
       if (err) {
@@ -117,17 +121,11 @@ app.post("/generate", async (req, res) => {
     return;
   }
 
-  const marginOptions = {};
-  if (req.body.marginTop) marginOptions.top = req.body.marginTop;
-  if (req.body.marginRight) marginOptions.right = req.body.marginRight;
-  if (req.body.marginBottom) marginOptions.bottom = req.body.marginBottom;
-  if (req.body.marginLeft) marginOptions.left = req.body.marginLeft;
-
   try {
     const base64Pdf = await generatePdfFromHtml(
       req.body.htmlContent,
       requestId,
-      { margin: marginOptions }
+      { margin: getMarginOptions(req.body) }
     );
 
     res.send(base64Pdf);
