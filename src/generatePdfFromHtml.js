@@ -1,4 +1,5 @@
 import Bottleneck from "bottleneck";
+import tmp from "tmp";
 
 const limiter = new Bottleneck({
   maxConcurrent: 1,
@@ -12,7 +13,7 @@ export const logWithRequestId = (requestId, message, error) => {
 };
 
 export const makeGeneratePdfFromHtml =
-  (browser) => async (htmlContent, requestId) => {
+  (browser) => async (htmlContent, requestId, options = {}) => {
     return limiter.schedule(async () => {
       const durationLabel = `[${requestId}] - Pdf generation duration`;
       console.time(durationLabel);
@@ -20,20 +21,20 @@ export const makeGeneratePdfFromHtml =
       logWithRequestId(requestId, "generatePdfFromHtml started");
       const page = await browser.newPage();
       page.setDefaultNavigationTimeout(5_000);
+      const tmpFile = tmp.fileSync({ suffix: '.pdf' });
 
       try {
         await page.setContent(htmlContent, { waitUntil: "load" });
         await page.emulateMediaType("print");
 
-        const fileName = `document_${requestId}.pdf`;
         const base64Pdf = (
           await page.pdf({
-            path: fileName,
+            path: tmpFile.name,
             margin: {
-              top: "2.5cm",
-              right: "1.5cm",
-              bottom: "2.5cm",
-              left: "1.5cm",
+              top: options.margin?.top ?? "2.5cm",
+              right: options.margin?.right ?? "1.5cm",
+              bottom: options.margin?.bottom ?? "2.5cm",
+              left: options.margin?.left ?? "1.5cm",
             },
             printBackground: true,
             format: "A4",
@@ -49,6 +50,7 @@ export const makeGeneratePdfFromHtml =
       } finally {
         console.timeEnd(durationLabel);
         await page.close();
+        tmpFile.removeCallback();
       }
     });
   };

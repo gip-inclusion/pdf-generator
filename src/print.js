@@ -19,7 +19,7 @@ export async function resetBrowser() {
   });
 }
 
-export async function genPDF(url, filename) {
+export async function genPDF(url, filename, options = {}) {
   if (!browser) {
     await resetBrowser();
   }
@@ -41,10 +41,10 @@ export async function genPDF(url, filename) {
     format: "A4",
     scale: 0.7,
     margin: {
-      top: "1cm",
-      right: "1cm",
-      bottom: "1cm",
-      left: "1cm",
+      top: options.margin?.top ?? "1cm",
+      right: options.margin?.right ?? "1cm",
+      bottom: options.margin?.bottom ?? "1cm",
+      left: options.margin?.left ?? "1cm",
     },
   });
 }
