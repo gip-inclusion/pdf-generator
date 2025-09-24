@@ -77,7 +77,7 @@ app.get("/ping", async (req, res) => {
 // - url: the path of the url we'll generate the PDF from.
 // - name: the name of the downloaded PDF.
 
-app.get("/print", async (req, res, next) => {
+app.get("/print", async (req, res) => {
   const url = req.query.url;
   const requestId = req.requestId;
 
@@ -104,17 +104,22 @@ app.get("/print", async (req, res, next) => {
 
     await genPDF(url, tmpFile.name);
 
-    res.download(tmpFile.name, downloadName, (err) => {
-      if (err) {
-        logWithRequestId(requestId, "GET /print failed to stream PDF", err);
-        err.logged = true;
-        tmpFile.removeCallback();
-        next(err);
-        return;
-      }
+    await new Promise((resolve, reject) => {
+      res.download(tmpFile.name, downloadName, (err) => {
+        if (err) {
+          logWithRequestId(requestId, "GET /print failed to stream PDF", err);
+          err.logged = true;
+          tmpFile.removeCallback();
+          tmpFile = null;
+          reject(err);
+          return;
+        }
 
-      logWithRequestId(requestId, "GET /print streaming completed");
-      tmpFile.removeCallback();
+        logWithRequestId(requestId, "GET /print streaming completed");
+        tmpFile.removeCallback();
+        tmpFile = null;
+        resolve();
+      });
     });
   } catch (err) {
     logWithRequestId(requestId, "GET /print failed", err);
@@ -131,17 +136,18 @@ app.get("/print", async (req, res, next) => {
 
     if (tmpFile) {
       tmpFile.removeCallback();
+      tmpFile = null;
     }
 
     if (err) {
       err.logged = true;
     }
 
-    next(err);
+    throw err;
   }
 });
 
-app.post("/generate", async (req, res, next) => {
+app.post("/generate", async (req, res) => {
   const requestId = req.requestId;
   logWithRequestId(requestId, "reached POST /generate");
 
@@ -165,7 +171,7 @@ app.post("/generate", async (req, res, next) => {
   } catch (error) {
     logWithRequestId(requestId, "Error when generating pdf", error);
     error.logged = true;
-    next(error);
+    throw error;
   }
 });
 
