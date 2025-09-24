@@ -10,7 +10,7 @@ import {
   makeGeneratePdfFromHtml,
   logWithRequestId,
 } from "./generatePdfFromHtml.js";
-import {launch} from "puppeteer";
+import { launch } from "puppeteer";
 
 dotenv.config();
 
@@ -25,6 +25,19 @@ const printExemple =
   "exemple of correct query params: 'https://...?url=https://example.com&name=exemple.pdf'";
 
 const app = express();
+
+app.use((req, res, next) => {
+  req.requestId = req.query.request_id ?? crypto.randomUUID();
+  logWithRequestId(req.requestId, `${req.method} ${req.path} received`);
+
+  res.on("finish", () => {
+    logWithRequestId(req.requestId, `${req.method} ${req.path} completed`, {
+      status: res.statusCode,
+    });
+  });
+
+  next();
+});
 
 const browser = await launch({
   headless: "new",
@@ -64,10 +77,12 @@ app.get("/ping", async (req, res) => {
 // - url: the path of the url we'll generate the PDF from.
 // - name: the name of the downloaded PDF.
 
-app.get("/print", async (req, res, _next) => {
+app.get("/print", async (req, res, next) => {
   const url = req.query.url;
+  const requestId = req.requestId;
 
   if (!url) {
+    logWithRequestId(requestId, "GET /print missing 'url' query param");
     res.status(400);
     res.send(`Missing 'url' query param, (${printExemple})`);
     return;
@@ -75,31 +90,59 @@ app.get("/print", async (req, res, _next) => {
 
   const downloadName = req.query.name;
   if (!downloadName) {
+    logWithRequestId(requestId, "GET /print missing 'name' query param");
     res.status(400);
     res.send(`Missing 'name' query param, (${printExemple})`);
     return;
   }
 
+  let tmpFile;
+
   try {
-    console.log(`GET /print - Page: ${url}`);
-    const tmpFile = tmp.fileSync();
+    logWithRequestId(requestId, "GET /print rendering page", { url });
+    tmpFile = tmp.fileSync();
 
     await genPDF(url, tmpFile.name);
 
     res.download(tmpFile.name, downloadName, (err) => {
       if (err) {
-        console.log(err);
+        logWithRequestId(requestId, "GET /print failed to stream PDF", err);
+        err.logged = true;
+        tmpFile.removeCallback();
+        next(err);
+        return;
       }
+
+      logWithRequestId(requestId, "GET /print streaming completed");
       tmpFile.removeCallback();
     });
   } catch (err) {
-    console.error(err);
-    await resetBrowser();
+    logWithRequestId(requestId, "GET /print failed", err);
+
+    try {
+      await resetBrowser();
+    } catch (resetError) {
+      logWithRequestId(
+        requestId,
+        "GET /print failed to reset browser",
+        resetError
+      );
+    }
+
+    if (tmpFile) {
+      tmpFile.removeCallback();
+    }
+
+    if (err) {
+      err.logged = true;
+    }
+
+    next(err);
   }
 });
 
-app.post("/generate", async (req, res) => {
-  const requestId = req.query.request_id ?? crypto.randomUUID();
+app.post("/generate", async (req, res, next) => {
+  const requestId = req.requestId;
   logWithRequestId(requestId, "reached POST /generate");
 
   const htmlContent = req.body.htmlContent;
@@ -121,11 +164,29 @@ app.post("/generate", async (req, res) => {
     return;
   } catch (error) {
     logWithRequestId(requestId, "Error when generating pdf", error);
-    throw error
+    error.logged = true;
+    next(error);
   }
 });
 
 // Run the server
+app.use((err, req, res, next) => {
+  const requestId = req.requestId ?? "unknown";
+
+  if (!err.logged) {
+    logWithRequestId(requestId, "Unhandled error", err);
+  }
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const status = err.status ?? err.statusCode ?? 500;
+  const message = status >= 500 ? "Internal server error" : err.message;
+
+  res.status(status).send(message);
+});
+
 app.listen(port, () => {
   console.log("Listening on", port);
 });

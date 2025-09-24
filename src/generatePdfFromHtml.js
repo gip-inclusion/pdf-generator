@@ -4,11 +4,20 @@ const limiter = new Bottleneck({
   maxConcurrent: 1,
 });
 
-export const logWithRequestId = (requestId, message, error) => {
-  console.log(`[${requestId}] - ${message}`);
-  if (error) {
-    console.error(`[${requestId}] - ${error}`);
+export const logWithRequestId = (requestId, message, extra) => {
+  const prefix = `[${requestId}] - ${message}`;
+
+  if (extra instanceof Error) {
+    console.error(prefix, extra);
+    return;
   }
+
+  if (extra !== undefined) {
+    console.log(prefix, extra);
+    return;
+  }
+
+  console.log(prefix);
 };
 
 export const makeGeneratePdfFromHtml =
