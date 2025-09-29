@@ -12,6 +12,6 @@ module.exports = {
   rules: {
     "jsdoc/require-jsdoc": "off",
     "no-console": "warn",
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+    "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
   },
 };

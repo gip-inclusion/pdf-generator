@@ -8,12 +8,15 @@ const limiter = new Bottleneck({
 export const logWithRequestId = (requestId, message, error) => {
   console.log(`[${requestId}] - ${message}`);
   if (error) {
-    console.error(`[${requestId}] - ${error}`);
+    console.error(
+      `[${requestId}] - ${message}, Error : ${JSON.stringify(error, null, 2)}`
+    );
   }
 };
 
 export const makeGeneratePdfFromHtml =
-  (browser) => async (htmlContent, requestId, options = {}) => {
+  (browser) =>
+  async (htmlContent, requestId, options = {}) => {
     return limiter.schedule(async () => {
       const durationLabel = `[${requestId}] - Pdf generation duration`;
       console.time(durationLabel);
@@ -21,7 +24,7 @@ export const makeGeneratePdfFromHtml =
       logWithRequestId(requestId, "generatePdfFromHtml started");
       const page = await browser.newPage();
       page.setDefaultNavigationTimeout(5_000);
-      const tmpFile = tmp.fileSync({ suffix: '.pdf' });
+      const tmpFile = tmp.fileSync({ suffix: ".pdf" });
 
       try {
         await page.setContent(htmlContent, { waitUntil: "load" });
