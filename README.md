@@ -14,11 +14,13 @@ A GitHub action automatically deploys the application to Scalingo when you push 
 You will need to provide the following environment variables (in the GitHub repository settings):
 
 Variables:
+
 - `APP_NAME`: the name of the app on Scalingo
 - `REGION`: the region of the app on Scalingo
 - `TARGZ_URL`: the URL of the tar.gz archive of the app to deploy
 
 Secret:
+
 - `SCALINGO_API_TOKEN`: a token with the appropriate rights to deploy the app mentioned in the variables
 
 ## Configuration
@@ -36,6 +38,7 @@ Secret:
 Generates a PDF from a URL. The complete URL must be provided in the `url` parameter.
 
 Query parameters:
+
 - `url`: the complete URL of the page to convert to PDF (required, must be URL-encoded)
 - `name`: the name of the downloaded PDF file (required)
 - `marginTop`: top margin (default: "1cm")
@@ -44,6 +47,7 @@ Query parameters:
 - `marginLeft`: left margin (default: "1cm")
 
 Example:
+
 ```
 https://<thisservicehostname>/print?url=https%3A%2F%2Fexample.com%2Fpage&name=document.pdf&marginTop=2cm&marginRight=1.5cm
 ```
@@ -55,6 +59,7 @@ Note: The URL must be properly URL-encoded. In the example above, `https://examp
 Generates a PDF from an HTML string.
 
 Request body (JSON):
+
 ```json
 {
   "htmlContent": "<html>...</html>",
@@ -66,9 +71,11 @@ Request body (JSON):
 ```
 
 Query parameters:
+
 - `request_id`: request identifier (optional, automatically generated if not provided)
 
 Default margins for this endpoint:
+
 - `marginTop`: "2.5cm"
 - `marginRight`: "1.5cm"
 - `marginBottom`: "2.5cm"

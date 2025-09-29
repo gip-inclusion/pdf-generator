@@ -10,7 +10,7 @@ import {
   makeGeneratePdfFromHtml,
   logWithRequestId,
 } from "./generatePdfFromHtml.js";
-import {launch} from "puppeteer";
+import { launch } from "puppeteer";
 
 dotenv.config();
 
@@ -92,7 +92,7 @@ app.get("/print", async (req, res, _next) => {
 
   try {
     console.log(`GET /print - Page: ${url}`);
-    const tmpFile = tmp.fileSync({ suffix: '.pdf' });
+    const tmpFile = tmp.fileSync({ suffix: ".pdf" });
 
     await genPDF(url, tmpFile.name, { margin: getMarginOptions(req.query) });
 
@@ -132,7 +132,7 @@ app.post("/generate", async (req, res) => {
     return;
   } catch (error) {
     logWithRequestId(requestId, "Error when generating pdf", error);
-    throw error
+    throw error;
   }
 });
 
