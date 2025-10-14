@@ -4,13 +4,12 @@ import helmet from "helmet";
 import bodyParser from "body-parser";
 import tmp from "tmp";
 import crypto from "crypto";
+import pinoHttp from "pino-http";
 
 import { genPDF, resetBrowser } from "./print.js";
-import {
-  makeGeneratePdfFromHtml,
-  logWithRequestId,
-} from "./generatePdfFromHtml.js";
+import { makeGeneratePdfFromHtml } from "./generatePdfFromHtml.js";
 import { launch } from "puppeteer";
+import logger from "./logger.js";
 
 dotenv.config();
 
@@ -43,8 +42,29 @@ app.use(
   })
 );
 
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req) => req.query.request_id || crypto.randomUUID(),
+    customLogLevel: (req, res, err) => {
+      if (res.statusCode >= 500 || err) return "error";
+      if (res.statusCode >= 400) return "warn";
+      return "info";
+    },
+    customAttributeKeys: {
+      req: "request",
+      res: "response",
+      responseTime: "duration",
+    },
+    autoLogging: {
+      ignore: (req) => req.url === "/ping",
+    },
+  })
+);
+
 app.use((req, res, next) => {
   if (req.headers.authorization !== apiKey) {
+    req.log.warn({ endpoint: req.url }, "unauthorized access attempt");
     res.status(401);
     res.send("Unauthorized, please provide a valid API key.");
     return;
@@ -78,6 +98,7 @@ app.get("/print", async (req, res, _next) => {
   const url = req.query.url;
 
   if (!url) {
+    req.log.warn({ endpoint: "/print" }, "missing url parameter");
     res.status(400);
     res.send(`Missing 'url' query param, (${printExemple})`);
     return;
@@ -85,58 +106,71 @@ app.get("/print", async (req, res, _next) => {
 
   const downloadName = req.query.name;
   if (!downloadName) {
+    req.log.warn({ endpoint: "/print" }, "missing name parameter");
     res.status(400);
     res.send(`Missing 'name' query param, (${printExemple})`);
     return;
   }
 
   try {
-    console.log(`GET /print - Page: ${url}`);
+    req.log.info(
+      { endpoint: "/print", urlDomain: new URL(url).hostname },
+      "generating pdf from url"
+    );
     const tmpFile = tmp.fileSync({ suffix: ".pdf" });
 
     await genPDF(url, tmpFile.name, { margin: getMarginOptions(req.query) });
 
     res.download(tmpFile.name, downloadName, (err) => {
       if (err) {
-        console.log(err);
+        req.log.error({ err, endpoint: "/print" }, "file download error");
       }
       tmpFile.removeCallback();
     });
   } catch (err) {
-    console.error(err);
+    req.log.error({ err, endpoint: "/print" }, "pdf generation failed");
     await resetBrowser();
+    res.status(500);
+    res.send("PDF generation failed");
   }
 });
 
 app.post("/generate", async (req, res) => {
-  const requestId = req.query.request_id ?? crypto.randomUUID();
-  logWithRequestId(requestId, "reached POST /generate");
-
   const htmlContent = req.body.htmlContent;
 
   if (!htmlContent) {
-    logWithRequestId(requestId, "POST /generate, failed with 400");
+    req.log.warn({ endpoint: "/generate" }, "missing htmlContent parameter");
     res.status(400);
     res.send(`Missing 'htmlContent' body param`);
     return;
   }
 
   try {
-    const base64Pdf = await generatePdfFromHtml(
-      req.body.htmlContent,
-      requestId,
-      { margin: getMarginOptions(req.body) }
+    req.log.info(
+      {
+        endpoint: "/generate",
+        htmlContentLength: htmlContent.length,
+        margins: getMarginOptions(req.body),
+      },
+      "generating pdf from html"
     );
+
+    const base64Pdf = await generatePdfFromHtml(req.body.htmlContent, req.id, {
+      margin: getMarginOptions(req.body),
+    });
 
     res.send(base64Pdf);
     return;
   } catch (error) {
-    logWithRequestId(requestId, "Error when generating pdf", error);
+    req.log.error(
+      { err: error, endpoint: "/generate" },
+      "pdf generation failed"
+    );
     throw error;
   }
 });
 
 // Run the server
 app.listen(port, () => {
-  console.log("Listening on", port);
+  logger.info({ port }, "server started");
 });

@@ -1,12 +1,17 @@
 import puppeteer from "puppeteer";
+import logger from "./logger.js";
+
 let browser = null;
+
+const printLogger = logger.child({ module: "print" });
 
 export async function resetBrowser() {
   if (browser) {
     try {
       await browser.close();
+      printLogger.info("browser closed");
     } catch (err) {
-      console.error(err);
+      printLogger.error({ err }, "error closing browser");
     }
   }
   browser = await puppeteer.launch({
@@ -14,9 +19,12 @@ export async function resetBrowser() {
     args: ["--no-sandbox", "--export-tagged-pdf"],
     headless: "new",
   });
+  printLogger.info("browser launched");
 }
 
 export async function genPDF(url, filename, options = {}) {
+  const startTime = Date.now();
+
   if (!browser) {
     await resetBrowser();
   }
@@ -24,7 +32,19 @@ export async function genPDF(url, filename, options = {}) {
 
   await page.setJavaScriptEnabled(false);
 
-  console.log(`Rendering ${url}`);
+  try {
+    const urlObj = new URL(url);
+    printLogger.info(
+      {
+        urlDomain: urlObj.hostname,
+        urlPath: urlObj.pathname,
+        margins: options.margin,
+      },
+      "rendering page"
+    );
+  } catch (err) {
+    printLogger.warn({ url }, "invalid url format");
+  }
 
   await page.goto(url);
   await page.waitForNetworkIdle();
@@ -44,4 +64,7 @@ export async function genPDF(url, filename, options = {}) {
       left: options.margin?.left ?? "1cm",
     },
   });
+
+  const duration = Date.now() - startTime;
+  printLogger.info({ duration }, "pdf generated successfully");
 }

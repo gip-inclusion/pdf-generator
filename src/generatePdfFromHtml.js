@@ -1,27 +1,29 @@
 import Bottleneck from "bottleneck";
 import tmp from "tmp";
+import { createRequestLogger } from "./logger.js";
 
 const limiter = new Bottleneck({
   maxConcurrent: 1,
 });
 
-export const logWithRequestId = (requestId, message, error) => {
-  console.log(`[${requestId}] - ${message}`);
-  if (error) {
-    console.error(
-      `[${requestId}] - ${message}, Error : ${JSON.stringify(error, null, 2)}`
-    );
-  }
-};
-
 export const makeGeneratePdfFromHtml =
   (browser) =>
   async (htmlContent, requestId, options = {}) => {
-    return limiter.schedule(async () => {
-      const durationLabel = `[${requestId}] - Pdf generation duration`;
-      console.time(durationLabel);
+    const log = createRequestLogger(requestId);
 
-      logWithRequestId(requestId, "generatePdfFromHtml started");
+    return limiter.schedule(async () => {
+      const startTime = Date.now();
+
+      log.info(
+        {
+          module: "generatePdfFromHtml",
+          htmlContentLength: htmlContent.length,
+          margins: options.margin,
+          queueSize: limiter.counts().EXECUTING,
+        },
+        "pdf generation started"
+      );
+
       const page = await browser.newPage();
       page.setDefaultNavigationTimeout(5_000);
       const tmpFile = tmp.fileSync({ suffix: ".pdf" });
@@ -44,14 +46,21 @@ export const makeGeneratePdfFromHtml =
           })
         ).toString("base64");
 
-        logWithRequestId(requestId, "generatePdfFromHtml finished");
+        const duration = Date.now() - startTime;
+        log.info(
+          { module: "generatePdfFromHtml", duration },
+          "pdf generation completed"
+        );
 
         return base64Pdf;
       } catch (error) {
-        logWithRequestId(requestId, "generatePdfFromHtml FAILED", error);
+        const duration = Date.now() - startTime;
+        log.error(
+          { module: "generatePdfFromHtml", err: error, duration },
+          "pdf generation failed"
+        );
         throw error;
       } finally {
-        console.timeEnd(durationLabel);
         await page.close();
         tmpFile.removeCallback();
       }
