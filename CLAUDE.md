@@ -49,6 +49,10 @@ Required:
 - `API_KEY`: Bearer token for Authorization header
 - `PORT`: Server listen port
 
+Optional:
+
+- `PDF_NAVIGATION_TIMEOUT`: Timeout in ms for page.setContent() in /generate endpoint (default: 5000)
+
 ## Code Patterns
 
 ### Logging

@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import logger from "./logger.js";
+import { logger } from "./logger.js";
 
 let browser = null;
 
@@ -9,9 +9,9 @@ export async function resetBrowser() {
   if (browser) {
     try {
       await browser.close();
-      printLogger.info("browser closed");
+      printLogger.info({ description: "browser closed" });
     } catch (err) {
-      printLogger.error({ err }, "error closing browser");
+      printLogger.error({ err, description: "error closing browser" });
     }
   }
   browser = await puppeteer.launch({
@@ -19,7 +19,7 @@ export async function resetBrowser() {
     args: ["--no-sandbox", "--export-tagged-pdf"],
     headless: "new",
   });
-  printLogger.info("browser launched");
+  printLogger.info({ description: "browser launched" });
 }
 
 export async function genPDF(url, filename, options = {}) {
@@ -34,16 +34,14 @@ export async function genPDF(url, filename, options = {}) {
 
   try {
     const urlObj = new URL(url);
-    printLogger.info(
-      {
-        urlDomain: urlObj.hostname,
-        urlPath: urlObj.pathname,
-        margins: options.margin,
-      },
-      "rendering page"
-    );
+    printLogger.info({
+      urlDomain: urlObj.hostname,
+      urlPath: urlObj.pathname,
+      margins: options.margin,
+      description: "rendering page",
+    });
   } catch (err) {
-    printLogger.warn({ url }, "invalid url format");
+    printLogger.warn({ url, description: "invalid url format" });
   }
 
   await page.goto(url);
@@ -66,5 +64,5 @@ export async function genPDF(url, filename, options = {}) {
   });
 
   const duration = Date.now() - startTime;
-  printLogger.info({ duration }, "pdf generated successfully");
+  printLogger.info({ duration, description: "pdf generated successfully" });
 }

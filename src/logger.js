@@ -13,8 +13,8 @@ const transport = isDevelopment
     }
   : undefined;
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
+export const logger = pino({
+  level: process.env.LOG_LEVEL || "debug",
   transport,
   formatters: {
     level: (label) => ({ level: label }),
@@ -59,5 +59,3 @@ function sanitizeUrl(url) {
 export function createRequestLogger(requestId) {
   return logger.child({ requestId });
 }
-
-export default logger;
