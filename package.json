@@ -21,7 +21,7 @@
     "pino": "^10.0.0",
     "pino-http": "^11.0.0",
     "puppeteer": "21.2.1",
-    "tmp": "0.2.1"
+    "tmp": "0.2.4"
   },
   "devDependencies": {
     "eslint": "8.49.0",
