@@ -1,33 +1,88 @@
 import Bottleneck from "bottleneck";
 import tmp from "tmp";
+import { createRequestLogger } from "./logger.js";
 
 const limiter = new Bottleneck({
   maxConcurrent: 1,
 });
 
-export const logWithRequestId = (requestId, message, error) => {
-  console.log(`[${requestId}] - ${message}`);
-  if (error) {
-    console.error(
-      `[${requestId}] - ${message}, Error : ${JSON.stringify(error, null, 2)}`
-    );
-  }
-};
+const navigationTimeout = Number.parseInt(
+  process.env.PDF_NAVIGATION_TIMEOUT || "5000",
+  10
+);
 
 export const makeGeneratePdfFromHtml =
   (browser) =>
   async (htmlContent, requestId, options = {}) => {
-    return limiter.schedule(async () => {
-      const durationLabel = `[${requestId}] - Pdf generation duration`;
-      console.time(durationLabel);
+    const log = createRequestLogger(requestId);
 
-      logWithRequestId(requestId, "generatePdfFromHtml started");
+    return limiter.schedule(async () => {
+      const startTime = Date.now();
+
+      log.info({
+        module: "generatePdfFromHtml",
+        htmlContentLength: htmlContent.length,
+        margins: options.margin,
+        queueSize: limiter.counts().EXECUTING,
+        navigationTimeout,
+        description: "pdf generation started",
+      });
+
       const page = await browser.newPage();
-      page.setDefaultNavigationTimeout(5_000);
+      page.setDefaultNavigationTimeout(navigationTimeout);
       const tmpFile = tmp.fileSync({ suffix: ".pdf" });
 
+      const requestTimings = new Map();
+
+      page.on("request", (request) => {
+        requestTimings.set(request.url(), {
+          type: request.resourceType(),
+          startTime: Date.now(),
+        });
+        log.debug({
+          url: request.url(),
+          resourceType: request.resourceType(),
+          description: "resource request started",
+        });
+      });
+
+      page.on("requestfinished", (request) => {
+        const timing = requestTimings.get(request.url());
+        if (timing) {
+          const duration = Date.now() - timing.startTime;
+          log.debug({
+            url: request.url(),
+            resourceType: timing.type,
+            duration,
+            description: "resource request finished",
+          });
+          requestTimings.delete(request.url());
+        }
+      });
+
+      page.on("requestfailed", (request) => {
+        const timing = requestTimings.get(request.url());
+        const duration = timing ? Date.now() - timing.startTime : undefined;
+        log.warn({
+          url: request.url(),
+          resourceType: timing?.type,
+          duration,
+          failure: request.failure()?.errorText,
+          description: "resource request failed",
+        });
+        requestTimings.delete(request.url());
+      });
+
       try {
+        const contentLoadStart = Date.now();
         await page.setContent(htmlContent, { waitUntil: "load" });
+        const contentLoadDuration = Date.now() - contentLoadStart;
+
+        log.info({
+          contentLoadDuration,
+          pendingRequests: requestTimings.size,
+          description: "page content loaded",
+        });
         await page.emulateMediaType("print");
 
         const base64Pdf = (
@@ -44,14 +99,44 @@ export const makeGeneratePdfFromHtml =
           })
         ).toString("base64");
 
-        logWithRequestId(requestId, "generatePdfFromHtml finished");
+        const duration = Date.now() - startTime;
+        log.info({
+          module: "generatePdfFromHtml",
+          duration,
+          description: "pdf generation completed",
+        });
 
         return base64Pdf;
       } catch (error) {
-        logWithRequestId(requestId, "generatePdfFromHtml FAILED", error);
+        const duration = Date.now() - startTime;
+
+        if (error.name === "TimeoutError") {
+          const pendingResources = Array.from(requestTimings.entries()).map(
+            ([url, timing]) => ({
+              url,
+              resourceType: timing.type,
+              pendingDuration: Date.now() - timing.startTime,
+            })
+          );
+
+          log.error({
+            module: "generatePdfFromHtml",
+            err: error,
+            duration,
+            pendingResourcesCount: pendingResources.length,
+            pendingResources,
+            description: "pdf generation timed out",
+          });
+        } else {
+          log.error({
+            module: "generatePdfFromHtml",
+            err: error,
+            duration,
+            description: "pdf generation failed",
+          });
+        }
         throw error;
       } finally {
-        console.timeEnd(durationLabel);
         await page.close();
         tmpFile.removeCallback();
       }
