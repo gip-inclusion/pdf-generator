@@ -20,7 +20,7 @@
     "helmet": "7.0.0",
     "pino": "^10.0.0",
     "pino-http": "^11.0.0",
-    "puppeteer": "21.2.1",
+    "puppeteer": "24.25.0",
     "tmp": "0.2.1"
   },
   "devDependencies": {
