@@ -180,7 +180,8 @@ app.post("/generate", async (req, res) => {
       endpoint: "/generate",
       description: "pdf generation failed",
     });
-    throw error;
+    res.status(500);
+    res.send("PDF generation failed");
   }
 });
 
