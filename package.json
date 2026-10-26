@@ -37,5 +37,8 @@
       "prettier --write --plugin-search-dir=.",
       "eslint --ignore-path .gitignore --fix"
     ]
+  },
+  "allowScripts": {
+    "puppeteer@25.16.0": true
   }
 }
