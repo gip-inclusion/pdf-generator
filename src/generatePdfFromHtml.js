@@ -85,7 +85,7 @@ export const makeGeneratePdfFromHtml =
         });
         await page.emulateMediaType("print");
 
-        const base64Pdf = (
+        const base64Pdf = Buffer.from(
           await page.pdf({
             path: tmpFile.name,
             margin: {

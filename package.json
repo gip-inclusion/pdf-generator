@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "engines": {
     "npm": ">=8",
-    "node": "18"
+    "node": "^24.22.1"
   },
   "type": "module",
   "scripts": {
@@ -13,15 +13,15 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "body-parser": "^1.20.2",
+    "body-parser": "^1.20.9",
     "bottleneck": "^2.19.5",
     "dotenv": "16.3.1",
-    "express": "4.18.2",
+    "express": "4.22.3",
     "helmet": "7.0.0",
     "pino": "^10.0.0",
     "pino-http": "^11.0.0",
-    "puppeteer": "21.2.1",
-    "tmp": "0.2.1"
+    "puppeteer": "25.16.0",
+    "tmp": "0.2.7"
   },
   "devDependencies": {
     "eslint": "8.49.0",
