@@ -26,7 +26,7 @@ const printExemple =
 const app = express();
 
 const browser = await launch({
-  headless: "new",
+  headless: true,
   args: ["--no-sandbox"],
 });
 

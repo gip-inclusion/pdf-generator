@@ -15,9 +15,9 @@ export async function resetBrowser() {
     }
   }
   browser = await puppeteer.launch({
-    product: "chrome",
+    browser: "chrome",
     args: ["--no-sandbox", "--export-tagged-pdf"],
-    headless: "new",
+    headless: true,
   });
   printLogger.info({ description: "browser launched" });
 }
